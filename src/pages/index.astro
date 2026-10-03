@@ -47,6 +47,7 @@ const periods = [
                     />
                   </span>
                   <span class="field-note" id={`${period.key}-note`}>{period.note}</span>
+                  <span class="net-note" data-net={period.key} hidden></span>
                 </label>
               ))}
             </div>
@@ -158,6 +159,7 @@ const periods = [
           basis.textContent = `Based on ${formatAmount(hours * weeks)} working hours per year`;
         };
         const formatCurrency = (value: number): string => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(value);
+        const formatNet = (value: number): string => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 2 }).format(value);
         const updateTaxEstimate = (): void => {
           if (!includeTax || !takeHome || !totalTax) return;
           const yearlyInput = rateInputs.find((input) => input.dataset.period === 'year');
@@ -174,6 +176,12 @@ const periods = [
           if (cpp) cpp.textContent = formatCurrency(estimate.cpp);
           if (ei) ei.textContent = formatCurrency(estimate.ei);
           if (ltd) ltd.textContent = formatCurrency(estimate.longTermDisability);
+          const factors = getFactors();
+          form.querySelectorAll<HTMLElement>('[data-net]').forEach((note) => {
+            const period = note.dataset.net as Period;
+            note.hidden = !includeTax.checked;
+            note.textContent = `${formatNet(estimate.takeHome * factors[period] / factors.year)} after tax and deductions`;
+          });
         };
         const syncRates = (source: HTMLInputElement): void => {
           const sourcePeriod = source.dataset.period as Period | undefined;
@@ -293,6 +301,9 @@ const periods = [
   .amount-wrap input { width: 100%; min-width: 0; padding: 3px 0; border: 0; outline: 0; background: transparent; color: inherit; font-size: 1.15rem; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; }
   .field-note { grid-column: 1 / -1; color: #85827b; font-size: .74rem; }
   .featured .field-note { color: #c8c9c0; }
+  .net-note { grid-column: 1 / -1; color: #4d7057; font-size: .78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .net-note[hidden] { display: none; }
+  .featured .net-note { color: #f0ba70; }
   .assumptions { display: grid; gap: 20px; padding: 24px; background: #eff3e9; }
   .section-kicker { color: #4d7057; }
   h2 { margin: 5px 0 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.65rem; font-weight: 500; letter-spacing: -.04em; }
